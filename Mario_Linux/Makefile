@@ -1,3 +1,11 @@
 default:
-	g++ -c Mario.cpp
-	g++ -o Mario Mario.o -lSDL -lSDL_image -lSDL_ttf
+	g++ -c Mario.cpp 
+	mv *.o src/obj
+	cd src/Entities
+	g++ -c *.cpp 
+	mv *.o src/obj
+	cd src/Units
+	g++ -c *.cpp 
+	mv *.o src/obj
+	cd src/obj
+	

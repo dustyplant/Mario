@@ -7,6 +7,9 @@ Mario Clone
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
 #include "SDL/SDL_ttf.h"
+
+#include "src/Units/Mario_Unit.h"
+
 #include <string>
 #include <iostream>
 
@@ -18,6 +21,7 @@ SDL_Rect camera;
 
 SDL_Surface* screen = NULL;
 SDL_Surface* background = NULL;
+SDL_Surface* mar = NULL;
 
 SDL_Event event;
 
@@ -47,6 +51,10 @@ bool load_files(){
 	background = load_image("res/test_world1-1.png");
 	if(background == NULL)
 		return false;
+	mar = load_image("res/scaled_smb_mario_sheet.png");
+	if(mar == NULL)
+		return false;
+
 	return true;
 }
 
@@ -59,6 +67,7 @@ void apply_surface(int x, int y, SDL_Surface* source, SDL_Surface* destination){
 
 void cleanup(){
 	SDL_FreeSurface(background);
+	SDL_FreeSurface(mar);
 	SDL_Quit();
 }
 
@@ -66,23 +75,23 @@ void initVars(){
 	camera.x = 0;
 	camera.y = 0;
 }
-
+/*
 void handleScroll(){
 	Uint8* keystates = SDL_GetKeyState(NULL);
 	if(keystates[SDLK_RIGHT] && abs(camera.x) <  background->w - SCREEN_WIDTH ){
-		camera.x -= 10;
+		camera.x -= 5;
 		if(abs(camera.x) >  background->w - SCREEN_WIDTH ){
 			camera.x = (background->w - SCREEN_WIDTH) * -1;
 		}
 	}
 	if(keystates[SDLK_LEFT] && camera.x < 0 ){
-		camera.x += 10;
+		camera.x += 5;
 		if(camera.x > 0){
 			camera.x = 0;
 		}
 	}
 }
-
+*/
 int main(int argc, char* argv[]){
 	bool quit = false;
 	if(init() == false)
@@ -93,17 +102,41 @@ int main(int argc, char* argv[]){
 
 	initVars();
 
+	Mario_Unit player(event);
 
+	std::cout << player.loaded << std::endl;	
 	while(!quit){
 		while(SDL_PollEvent(&event)){
 			if(event.type == SDL_QUIT){
 				quit = true;
 			}
 		}
-		
-		handleScroll();
+		SDL_Rect temp = player.get_rects();
+		int x = 0;
+		int y = 0;
+		bool middle = false;
+		//apply_surface(camera.x,camera.y,background, screen);
+		if(temp.x <= SCREEN_WIDTH/2){
+			x = 0;
+		}
+		else if(temp.x >= background->w - SCREEN_WIDTH/2){
+			x = background->w - SCREEN_WIDTH;
+		}
+		else{
+			x = (temp.x - SCREEN_WIDTH/2 ) * -1;
+			middle = true;
+		}
 
-		apply_surface(camera.x,camera.y,background, screen);
+		apply_surface(x, y, background, screen);
+
+		//player.move(middle, SCREEN_WIDTH, SCREEN_HEIGHT);
+		player.display(screen, middle, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+		//apply_surface(0,0,mar, screen);
+
+
+		//handleScroll();
+
 
 		if(SDL_Flip(screen) == -1){
 			return 1;
