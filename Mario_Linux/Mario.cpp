@@ -14,6 +14,8 @@ const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 const int SCREEN_BPP = 32;
 
+SDL_Rect camera;
+
 SDL_Surface* screen = NULL;
 SDL_Surface* background = NULL;
 
@@ -42,7 +44,7 @@ bool init(){
 }
 
 bool load_files(){
-	background = load_image("res/Levels/world1-1.png");
+	background = load_image("res/test_world1-1.png");
 	if(background == NULL)
 		return false;
 	return true;
@@ -60,6 +62,27 @@ void cleanup(){
 	SDL_Quit();
 }
 
+void initVars(){
+	camera.x = 0;
+	camera.y = 0;
+}
+
+void handleScroll(){
+	Uint8* keystates = SDL_GetKeyState(NULL);
+	if(keystates[SDLK_RIGHT] && abs(camera.x) <  background->w - SCREEN_WIDTH ){
+		camera.x -= 10;
+		if(abs(camera.x) >  background->w - SCREEN_WIDTH ){
+			camera.x = (background->w - SCREEN_WIDTH) * -1;
+		}
+	}
+	if(keystates[SDLK_LEFT] && camera.x < 0 ){
+		camera.x += 10;
+		if(camera.x > 0){
+			camera.x = 0;
+		}
+	}
+}
+
 int main(int argc, char* argv[]){
 	bool quit = false;
 	if(init() == false)
@@ -68,17 +91,22 @@ int main(int argc, char* argv[]){
 	if(load_files() == false)
 		return 1;
 
-	apply_surface(0,0,background, screen);
+	initVars();
 
-	if(SDL_Flip(screen) == -1){
-		return 1;
-	}
 
 	while(!quit){
 		while(SDL_PollEvent(&event)){
 			if(event.type == SDL_QUIT){
 				quit = true;
 			}
+		}
+		
+		handleScroll();
+
+		apply_surface(camera.x,camera.y,background, screen);
+
+		if(SDL_Flip(screen) == -1){
+			return 1;
 		}
 	}
 
