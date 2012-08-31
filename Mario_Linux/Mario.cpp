@@ -25,6 +25,8 @@ SDL_Surface* mar = NULL;
 
 SDL_Event event;
 
+SDL_Rect posOffset;
+
 SDL_Surface* load_image(std::string filename){
 	SDL_Surface* loadedImage = NULL;
 	SDL_Surface* optimizedImage = NULL;
@@ -74,24 +76,10 @@ void cleanup(){
 void initVars(){
 	camera.x = 0;
 	camera.y = 0;
+	posOffset.x = 0;
+	posOffset.y = 0;
 }
-/*
-void handleScroll(){
-	Uint8* keystates = SDL_GetKeyState(NULL);
-	if(keystates[SDLK_RIGHT] && abs(camera.x) <  background->w - SCREEN_WIDTH ){
-		camera.x -= 5;
-		if(abs(camera.x) >  background->w - SCREEN_WIDTH ){
-			camera.x = (background->w - SCREEN_WIDTH) * -1;
-		}
-	}
-	if(keystates[SDLK_LEFT] && camera.x < 0 ){
-		camera.x += 5;
-		if(camera.x > 0){
-			camera.x = 0;
-		}
-	}
-}
-*/
+
 int main(int argc, char* argv[]){
 	bool quit = false;
 	if(init() == false)
@@ -112,25 +100,25 @@ int main(int argc, char* argv[]){
 			}
 		}
 		SDL_Rect temp = player.get_rects();
-		int x = 0;
-		int y = 0;
+
 		bool middle = false;
 		//apply_surface(camera.x,camera.y,background, screen);
 		if(temp.x <= SCREEN_WIDTH/2){
-			x = 0;
+			posOffset.x = 0;
+			posOffset.y = 0;
 		}
-		else if(temp.x >= background->w - SCREEN_WIDTH/2){
-			x = background->w - SCREEN_WIDTH;
+		else if(temp.x > background->w - SCREEN_WIDTH/2){
+			posOffset.x = (background->w - SCREEN_WIDTH) * -1;
 		}
 		else{
-			x = (temp.x - SCREEN_WIDTH/2 ) * -1;
+			posOffset.x = (temp.x - SCREEN_WIDTH/2 ) * -1;
 			middle = true;
 		}
 
-		apply_surface(x, y, background, screen);
+		apply_surface(posOffset.x, posOffset.y, background, screen);
 
 		//player.move(middle, SCREEN_WIDTH, SCREEN_HEIGHT);
-		player.display(screen, middle, SCREEN_WIDTH, SCREEN_HEIGHT);
+		player.display(screen, background, SCREEN_WIDTH, SCREEN_HEIGHT, posOffset);
 
 		//apply_surface(0,0,mar, screen);
 

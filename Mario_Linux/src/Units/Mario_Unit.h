@@ -20,6 +20,9 @@ private:
 	bool goingLeft;
 	void set_clips();
 	SDL_Event event;
+
+	int velocity;
+
 public:
 	Mario_Unit(SDL_Event &temp);
 	Mario_Unit(int x, int y);
@@ -27,8 +30,8 @@ public:
 
 	~Mario_Unit();
 
-	void display(SDL_Surface* screen, bool middle, int SCREEN_WIDTH, int SCREEN_HEIGHT);
-	void move(bool middle, int SCREEN_WIDTH, int SCREEN_HEIGHT);
+	void display(SDL_Surface* screen, SDL_Surface* background, int SCREEN_WIDTH, int SCREEN_HEIGHT, SDL_Rect &posOffset);
+	void move(SDL_Surface* background, int SCREEN_WIDTH, int SCREEN_HEIGHT, SDL_Rect &posOffset, int width);
 	bool loaded;
 };
 

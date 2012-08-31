@@ -3,6 +3,7 @@
 //#include "../Entities/Killable.h"
 #include "../Entities/SDL_BaseProg.h"
 #include <vector>
+#include <iostream>
 
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
@@ -20,7 +21,8 @@ Mario_Unit::Mario_Unit(SDL_Event &temp){
 	goingRight = true;
 	goingLeft = false;
 	event = temp;
-}
+	velocity = 5;
+}	
 
 Mario_Unit::Mario_Unit(int x, int y){
 	currentClip = 0;
@@ -51,18 +53,20 @@ Mario_Unit::Mario_Unit(int x, int y, int starting){
 	goingLeft = false;
 }
 
-void Mario_Unit::display(SDL_Surface* screen, bool middle, int SCREEN_WIDTH, int SCREEN_HEIGHT){
-	if(middle)
-		show(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, image, screen, &clips[currentClip]);
-	else
-		show(box.x, SCREEN_HEIGHT/2, image, screen , &clips[currentClip]);
-	move(middle, SCREEN_WIDTH, SCREEN_HEIGHT);
+void Mario_Unit::display(SDL_Surface* screen, SDL_Surface* background, int SCREEN_WIDTH, int SCREEN_HEIGHT, SDL_Rect &posOffset){
+	move(background, SCREEN_WIDTH, SCREEN_HEIGHT, posOffset, clips[currentClip].w);
+	//if(middle)
+	show(box.x + posOffset.x, SCREEN_HEIGHT/2, image, screen, &clips[currentClip]);
+	//show(box.x, SCREEN_HEIGHT/2, image, screen , &clips[currentClip]);
 }
 
-void Mario_Unit::move(bool middle, int SCREEN_WIDTH, int SCREEN_HEIGHT){
+void Mario_Unit::move(SDL_Surface* background, int SCREEN_WIDTH, int SCREEN_HEIGHT, SDL_Rect &posOffset, int width){
 	Uint8* keystates = SDL_GetKeyState(NULL);
 	if(keystates[SDLK_RIGHT]){
-		box.x += 1;
+		box.x += velocity;
+		if(box.x + width + posOffset.x > SCREEN_WIDTH){
+			box.x -= velocity;
+		}
 		if(goingRight){
 			currentClip++;
 			if(currentClip > 9)
@@ -75,7 +79,10 @@ void Mario_Unit::move(bool middle, int SCREEN_WIDTH, int SCREEN_HEIGHT){
 		}
 	}
 	if(keystates[SDLK_LEFT]){
-		box.x -= 1;
+		box.x -= velocity;
+		if(box.x + posOffset.x < 0){
+			box.x += velocity;
+		}
 		if(goingLeft){
 			currentClip--;
 			if(currentClip < 2)
