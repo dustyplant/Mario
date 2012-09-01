@@ -1,6 +1,7 @@
 #include "Object.h"
-#include "SDL_BaseProg.h"
+#include "../Utilities/SDL_BaseProg.h"
 #include <vector>
+#include <iostream>
 
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
@@ -21,12 +22,19 @@ Object::Object(int x, int y, int w, int h){
 	impassable = true;
 }
 
+Object::~Object(){
+	SDL_FreeSurface(image);
+}
+
 bool Object::collision(SDL_Rect &rect){
-	//TODO::Write the generic collision detection function.
+	if( (box.x > rect.x && box.x + box.w < rect.x + rect.w) && box.y > rect.y && box.y + box.h < rect.y + rect.h ){
+		return true;
+	}
 }
 
 bool Object::collision(std::vector<SDL_Rect> vec){
 	//TODO::Write the generic collision detection function.
+	return false;
 }
 
 void Object::show(int x, int y, SDL_Surface* source, SDL_Surface* destination, SDL_Rect* clipper/* = NULL */){

@@ -1,6 +1,6 @@
 /*
 Shane Satterfield
-8-29-2012
+Started: 8-29-2012
 Mario Clone
 */
 
@@ -9,13 +9,18 @@ Mario Clone
 #include "SDL/SDL_ttf.h"
 
 #include "src/Units/Mario_Unit.h"
+#include "src/Utilities/Timer.h"
+#include "src/Level_Structure/Tiles.h"
 
 #include <string>
 #include <iostream>
+#include <vector>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 const int SCREEN_BPP = 32;
+
+const int FRAMES_PER_SECOND = 60;
 
 SDL_Rect camera;
 
@@ -26,6 +31,8 @@ SDL_Surface* mar = NULL;
 SDL_Event event;
 
 SDL_Rect posOffset;
+
+bool cap = true;
 
 SDL_Surface* load_image(std::string filename){
 	SDL_Surface* loadedImage = NULL;
@@ -80,6 +87,29 @@ void initVars(){
 	posOffset.y = 0;
 }
 
+void dispMario(Mario_Unit &player, bool jump){
+	SDL_Rect temp = player.get_rects();
+
+	bool middle = false;
+	
+	if(temp.x <= SCREEN_WIDTH/2){
+		posOffset.x = 0;
+		posOffset.y = 0;
+	}
+	else if(temp.x > background->w - SCREEN_WIDTH/2){
+		posOffset.x = (background->w - SCREEN_WIDTH) * -1;
+	}
+	else{
+		posOffset.x = (temp.x - SCREEN_WIDTH/2 ) * -1;
+		middle = true;
+	}
+
+
+	player.display(screen, background, posOffset, jump);
+}
+
+
+
 int main(int argc, char* argv[]){
 	bool quit = false;
 	if(init() == false)
@@ -88,46 +118,49 @@ int main(int argc, char* argv[]){
 	if(load_files() == false)
 		return 1;
 
+	bool jump = false;
+
 	initVars();
 
-	Mario_Unit player(event);
+	Mario_Unit player(event, mar, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Tiles tiles;
+	tiles.load_tiles();
 
 	std::cout << player.loaded << std::endl;	
+	Timer fps;
 	while(!quit){
+
+		fps.start();
+		
 		while(SDL_PollEvent(&event)){
 			if(event.type == SDL_QUIT){
 				quit = true;
 			}
-		}
-		SDL_Rect temp = player.get_rects();
-
-		bool middle = false;
-		//apply_surface(camera.x,camera.y,background, screen);
-		if(temp.x <= SCREEN_WIDTH/2){
-			posOffset.x = 0;
-			posOffset.y = 0;
-		}
-		else if(temp.x > background->w - SCREEN_WIDTH/2){
-			posOffset.x = (background->w - SCREEN_WIDTH) * -1;
-		}
-		else{
-			posOffset.x = (temp.x - SCREEN_WIDTH/2 ) * -1;
-			middle = true;
+			if(event.type = SDL_KEYUP){
+				switch(event.key.keysym.sym){
+					case SDLK_SPACE:
+						jump = true;
+						break;
+				}
+			}
 		}
 
 		apply_surface(posOffset.x, posOffset.y, background, screen);
 
-		//player.move(middle, SCREEN_WIDTH, SCREEN_HEIGHT);
-		player.display(screen, background, SCREEN_WIDTH, SCREEN_HEIGHT, posOffset);
+		
+		tiles.display(posOffset, screen);
 
-		//apply_surface(0,0,mar, screen);
+		player.move(background, posOffset, jump, tiles.get_tileSet());
+		dispMario(player, jump);
 
-
-		//handleScroll();
-
+		jump = false;
 
 		if(SDL_Flip(screen) == -1){
 			return 1;
+		}
+
+		if(cap == true && fps.get_ticks() < 1000.f / FRAMES_PER_SECOND){
+			SDL_Delay((1000.0/FRAMES_PER_SECOND) - fps.get_ticks());
 		}
 	}
 
