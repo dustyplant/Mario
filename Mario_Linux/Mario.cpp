@@ -95,10 +95,10 @@ void dispMario(Mario_Unit &player, bool jump){
 	if(temp.x <= SCREEN_WIDTH/2){
 		posOffset.x = 0;
 		posOffset.y = 0;
-	}
+	}/*
 	else if(temp.x > background->w - SCREEN_WIDTH/2){
 		posOffset.x = (background->w - SCREEN_WIDTH) * -1;
-	}
+	}*/
 	else{
 		posOffset.x = (temp.x - SCREEN_WIDTH/2 ) * -1;
 		middle = true;
@@ -145,7 +145,8 @@ int main(int argc, char* argv[]){
 			}
 		}
 
-		apply_surface(posOffset.x, posOffset.y, background, screen);
+		SDL_FillRect(screen, &screen->clip_rect, SDL_MapRGB(screen->format, 0,0,0));
+		//apply_surface(posOffset.x, posOffset.y, background, screen);
 
 		
 		tiles.display(posOffset, screen);

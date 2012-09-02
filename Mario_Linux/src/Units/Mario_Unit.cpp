@@ -66,7 +66,7 @@ void Mario_Unit::move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, s
 			goingLeft = false;
 		}
 		box.y += box.h - clips[currentClip].h;
-		//box.x += box.w - clips[currentClip].w;
+		box.x += box.w - clips[currentClip].w;
 
 	}
 	if(keystates[SDLK_LEFT]){
@@ -99,7 +99,7 @@ void Mario_Unit::move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, s
 		box.y += box.h - clips[currentClip].h;
 	}
 	framer++;
-	if(framer == 15){
+	if(framer == 5){
 		framer = 0;
 	}
 
@@ -122,7 +122,8 @@ void Mario_Unit::jumper(bool jump, std::vector<Tile> &tileSet, SDL_Rect &posOffs
 		grounded = fallingFunc(tileSet, posOffset);
 		falling = !grounded;
 	}
-
+		//std::cout << "Grounded: " << grounded << "\tfalling: " << falling << std::endl;
+	//std::cout << "box.y: " << box.y + box.h << std::endl;
 	framer++;
 	if(framer >= 30){
 		framer = 0;
@@ -146,7 +147,8 @@ bool Mario_Unit::fallingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 		box.y--;
 		bl = true;
 	}
-	box.y--;
+	//box.y--;
+	//std::cout << box.y << std::endl;
 	return bl;
 }
 
@@ -171,7 +173,7 @@ bool Mario_Unit::check_grounded(std::vector<Tile> &tileSet, SDL_Rect &posOffset)
 	for(int i = 0; i < tileSet.size(); i++){
 		SDL_Rect temp = tileSet[i].get_box();
 
-		if( (box.x + box.w  > temp.x && box.x < temp.x + temp.w) && (box.y + box.h +1 >= temp.y && box.y +1 <= temp.y) ){
+		if( (box.x + box.w  > temp.x && box.x < temp.x + temp.w) && (box.y + box.h == temp.y && box.y  == temp.y) ){
 			return  true;
 		}
 	}
@@ -199,7 +201,7 @@ bool Mario_Unit::check_down_collision(std::vector<Tile> &tileSet, SDL_Rect &posO
 	for(int i = 0; i < tileSet.size(); i++){
 		SDL_Rect temp = tileSet[i].get_box();
 
-		if( (box.x + box.w  > temp.x && box.x < temp.x + temp.w) && (box.y + box.h > temp.y && box.y < temp.y) ){
+		if( (box.x + box.w  >= temp.x && box.x < temp.x + temp.w) && (box.y + box.h > temp.y && box.y < temp.y) ){
 			return  true;
 		}
 	}
@@ -213,8 +215,8 @@ bool Mario_Unit::check_left_collision(std::vector<Tile> &tileSet, SDL_Rect &posO
 	for(int i = 0; i < tileSet.size(); i++){
 		SDL_Rect temp = tileSet[i].get_box();
 
-		if( !(box.y + box.h < temp.y || box.y > temp.y + temp.h ) ){
-			if( box.x < temp.x + temp.w && box.x + box.w > temp.x + temp.h){
+		if( !(box.y + box.h <= temp.y || box.y >= temp.y + temp.h ) ){
+			if( box.x <= temp.x + temp.w && box.x + box.w >= temp.x + temp.h){
 				return  true;
 			}
 		}
@@ -229,8 +231,8 @@ bool Mario_Unit::check_right_collision(std::vector<Tile> &tileSet, SDL_Rect &pos
 	for(int i = 0; i < tileSet.size(); i++){
 		SDL_Rect temp = tileSet[i].get_box();
 
-		if( !(box.y + box.h < temp.y || box.y > temp.y + temp.h) ){
-			if( box.x + box.w > temp.x && box.x < temp.x){
+		if( !(box.y + box.h <= temp.y || box.y >= temp.y + temp.h) ){
+			if( box.x + box.w >= temp.x && box.x <= temp.x){
 				return  true;
 			}
 		}
