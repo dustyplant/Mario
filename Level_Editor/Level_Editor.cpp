@@ -9,6 +9,8 @@
 #include "src/Utilities/Coll.h"
 
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -16,13 +18,17 @@ const int SCREEN_BPP = 32;
 
 const int FRAMES_PER_SECOND = 60;
 
+const int GRID_SIZE = 16;
+
 SDL_Surface* screen = NULL;
 SDL_Event event;
 SDL_Rect posOffset;
 
 Coll coller;
 
-int currentType = 0;
+int currentClip = 0;
+
+std::vector<SDL_Rect> grid;
 
 bool cap = true;
 
@@ -68,44 +74,67 @@ void initVars(){
 	posOffset.y = 0;
 }
 
-void placeTile(int tx, int ty, Tiles &tiles){
-	int x = tx;
-	int y = ty;
-	SDL_Rect box;
-	box.x = x;
-	box.y = y;
-	box.w = tiles.clips[0].w;
-	box.h = tiles.clips[0].h;
-
-	std::cout << tiles.get_tileSet().size() << std::endl;
-	int counter = 0;
-	while(coller.check_collision(box, tiles.get_tileSet(), posOffset) ){
-		std::cout << 0 << std::endl;
-		if(coller.check_up_collision(box, tiles.get_tileSet(), posOffset)){
-			box.y++;
-			std::cout << 1 << std::endl;
+int search_grid(int x, int y){
+	int bl = -1;
+	for(int i = 0; i < grid.size(); i++){
+		if(grid[i].x == x && grid[i].y == y){
+			bl = i;
+			break;
 		}
-		else if(coller.check_down_collision(box, tiles.get_tileSet(), posOffset)){
-			box.y--;
-			std::cout << 2 << std::endl;
-		}
-		else if(coller.check_left_collision(box, tiles.get_tileSet(), posOffset)){
-			box.x--;
-			std::cout << 3 << std::endl;
-		}
-		else if(coller.check_right_collision(box, tiles.get_tileSet(), posOffset)){
-			box.x++;
-			std::cout << 4 << std::endl;
-		}
-		else{
-			box.x++;
-			box.y--;
-		}
-		std::cout << "Counter: " << ++counter << std::endl;
 	}
-	std::cout << 5 << std::endl;
-	tiles.addTile(box.x, box.y, tiles.clips[0].w, tiles.clips[0].h, 0);
-	std::cout << 6 << std::endl;
+	return bl;
+}
+
+void placeTile(int tx, int ty, Tiles &tiles){
+	int origin_x = (tx/GRID_SIZE) * GRID_SIZE;
+	int origin_y = (ty/GRID_SIZE) * GRID_SIZE;
+	int x = origin_x;
+	int y = origin_y;
+	bool bl = false;
+	while(x - origin_x < tiles.clips[currentClip].w && y - origin_y < tiles.clips[currentClip].h){
+		if( search_grid(x,y) != -1 ){
+			bl = true;
+			break;
+		}
+		if( (x + GRID_SIZE) - origin_x <= tiles.clips[currentClip].w  ){
+			x += GRID_SIZE;
+		}
+		else if( (y + GRID_SIZE) - origin_y <= tiles.clips[currentClip].h ){
+			y+= GRID_SIZE;
+		}
+
+	}
+	if(!bl){
+		x = origin_x;
+		y = origin_y;
+		tiles.addTile(x, y, tiles.clips[currentClip].w, tiles.clips[currentClip].w, currentClip);
+		while(x - origin_x < tiles.clips[currentClip].w && y - origin_y < tiles.clips[currentClip].h){
+			SDL_Rect temp;
+			temp.x = x;
+			temp.y = y;
+			temp.w = GRID_SIZE;
+			temp.h = GRID_SIZE;
+			grid.push_back(temp);
+			if( (x + GRID_SIZE) - origin_x <= tiles.clips[currentClip].w  ){
+				x += GRID_SIZE;
+			}
+			else if( (y + GRID_SIZE) - origin_y <= tiles.clips[currentClip].h ){
+				y+= GRID_SIZE;
+			}
+		}
+	}
+	else{
+		int num = search_grid(origin_x, origin_y);
+		if(num != -1){
+			grid.erase(grid.begin() + num);
+			for(int i = 0; i < tiles.get_tileSet().size(); i++){
+				if(tiles.get_tileSet()[i].get_box().x == origin_x && tiles.get_tileSet()[i].get_box().y == origin_y){
+					tiles.get_tileSet().erase( tiles.get_tileSet().begin() + i );
+					i--;
+				}
+			}
+		}
+	}
 }
 
 int main(int argc, char* args[]){
@@ -113,12 +142,12 @@ int main(int argc, char* args[]){
 	if(init() == false)
 		return 1;
 
-
 	if(load_files() == false)
 		return 1;
 
 	Tiles tiles(posOffset, screen);
-	tiles.load_tiles();
+	//tiles.load_tiles();
+	
 
 	Timer fps;
 
@@ -138,6 +167,13 @@ int main(int argc, char* args[]){
 
 				}
 			}
+			if(event.type == SDL_MOUSEMOTION){
+				int x, y;
+				SDL_GetMouseState(&x, &y);
+				std::stringstream streamer;
+				streamer << "X: " << x/GRID_SIZE * GRID_SIZE << "\tY: " << y/GRID_SIZE * GRID_SIZE;
+				SDL_WM_SetCaption(streamer.str().c_str(), NULL);
+			}
 		}
 
 		fps.start();
@@ -153,6 +189,21 @@ int main(int argc, char* args[]){
 		}
 
 	}
+
+	//Saving the level.
+	std::ofstream file;
+	file.open("test_level.txt");
+
+	std::vector<Tile> vec = tiles.get_tileSet();
+
+	for(int i = 0; i < vec.size(); i++){
+		SDL_Rect temp = vec[i].get_box();
+		file << temp.x << '#' << temp.y << '#' << vec[i].getClip();
+		if(i+1 < vec.size())
+			file << '\n';
+	}
+
+	file.close();
 
 	cleanup();
 	return 0;

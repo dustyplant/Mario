@@ -148,7 +148,6 @@ int main(int argc, char* argv[]){
 		SDL_FillRect(screen, &screen->clip_rect, SDL_MapRGB(screen->format, 0,0,0));
 		//apply_surface(posOffset.x, posOffset.y, background, screen);
 
-		
 		tiles.display();
 
 		player.move(background, posOffset, jump, tiles.get_tileSet());

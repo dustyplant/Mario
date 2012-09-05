@@ -14,7 +14,7 @@ class Tiles: public Object{
 private:
 	void set_clips();
 	SDL_Surface* screen;
-	SDL_Rect posOffset;
+	SDL_Rect *posOffset;
 	std::vector<Tile> tile_set;
 public:
 	Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen);
@@ -23,7 +23,7 @@ public:
 	void display();
 	void displayTile(SDL_Rect clip);
 	void addTile(int x, int y, int w, int h, int type);
-	std::vector<Tile> get_tileSet();
+	std::vector<Tile> &get_tileSet();
 	bool load_tiles();
 };
 
