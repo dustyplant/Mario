@@ -9,15 +9,9 @@
 
 
 Tiles::Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen){
-	std::cout << '7' << std::endl;
 	image = load_image("res/groundtiles.png");
-	std::cout << "10" << std::endl;
-	if(image == NULL)
-		std::cout << '1' << std::endl;
 	screen = tScreen;
-	std::cout << '8' << std::endl;
 	posOffset = tposOffset;
-	std::cout << '9' << std::endl;
 	set_clips();
 }
 void Tiles::display(){
@@ -34,7 +28,8 @@ void Tiles::addTile(int x, int y, int w, int h, int type){
 	Tile temp(x, y, w, h, type);
 	tile_set.push_back(temp);
 }
-std::vector<Tile> Tiles::get_tileSet(){
+
+std::vector<Tile> &Tiles::get_tileSet(){
 	return tile_set;
 }
 
