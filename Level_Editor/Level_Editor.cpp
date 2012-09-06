@@ -27,6 +27,7 @@ SDL_Rect posOffset;
 Coll coller;
 
 int currentClip = 0;
+int maxClip = 0;
 
 std::vector<SDL_Rect> grid;
 
@@ -86,8 +87,9 @@ int search_grid(int x, int y){
 }
 
 void placeTile(int tx, int ty, Tiles &tiles){
-	int origin_x = (tx/GRID_SIZE) * GRID_SIZE;
-	int origin_y = (ty/GRID_SIZE) * GRID_SIZE;
+	int origin_x = ( (tx - posOffset.x)/GRID_SIZE) * GRID_SIZE;
+	int origin_y = ( (ty - posOffset.y)/GRID_SIZE) * GRID_SIZE;
+
 	int x = origin_x;
 	int y = origin_y;
 	bool bl = false;
@@ -137,7 +139,29 @@ void placeTile(int tx, int ty, Tiles &tiles){
 	}
 }
 
-int main(int argc, char* args[]){
+void set_camera(Tiles &tiles){
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	if(x > SCREEN_WIDTH - SCREEN_WIDTH/8){
+		posOffset.x -= 3;
+	}
+	if(x < SCREEN_WIDTH/8){
+		posOffset.x += 3;
+		if(posOffset.x  > 0){
+			posOffset.x = 0;
+		}
+	}
+	if(y > SCREEN_HEIGHT - SCREEN_HEIGHT/8){
+		posOffset.y -= 3;
+	}
+	if(y < SCREEN_HEIGHT/8){
+		posOffset.y += 3;
+		if(posOffset.y > 0)
+			posOffset.y = 0;
+	}
+}
+
+int main(int argc, char* argv[]){
 	bool quit = false;
 	if(init() == false)
 		return 1;
@@ -145,14 +169,18 @@ int main(int argc, char* args[]){
 	if(load_files() == false)
 		return 1;
 
+	posOffset.x = 0; 
+	posOffset.y = 0;
+	posOffset.w = SCREEN_WIDTH;
+	posOffset.h = SCREEN_HEIGHT;
 	Tiles tiles(posOffset, screen);
 	//tiles.load_tiles();
-	
-
+	maxClip = sizeof(tiles.clips)/sizeof(tiles.clips[0]);
 	Timer fps;
 
 	while(!quit){
 
+		fps.start();
 		while(SDL_PollEvent(&event)){
 			if(event.type == SDL_QUIT){
 				quit = true;
@@ -162,24 +190,48 @@ int main(int argc, char* args[]){
 				if(event.button.button == SDL_BUTTON_LEFT){
 					int x = event.button.x;
 					int y = event.button.y;
-
-					placeTile(x,y, tiles);
-
+					placeTile(x,y, tiles);					
 				}
 			}
 			if(event.type == SDL_MOUSEMOTION){
 				int x, y;
 				SDL_GetMouseState(&x, &y);
 				std::stringstream streamer;
-				streamer << "X: " << x/GRID_SIZE * GRID_SIZE << "\tY: " << y/GRID_SIZE * GRID_SIZE;
+				streamer << "X: " << (x - posOffset.x)/GRID_SIZE * GRID_SIZE << "\tY: " << (y - posOffset.y)/GRID_SIZE * GRID_SIZE;
 				SDL_WM_SetCaption(streamer.str().c_str(), NULL);
+				
+				
+			}
+			if(event.type == SDL_MOUSEBUTTONDOWN){
+				if(event.button.button == SDL_BUTTON_WHEELUP){
+					currentClip--;
+					if(currentClip < 0)
+						currentClip = maxClip - 1;
+				}
+				if(event.button.button == SDL_BUTTON_WHEELDOWN){
+					currentClip++;
+					if(currentClip >= maxClip)
+						currentClip = 0;
+				}
 			}
 		}
+		set_camera(tiles);
 
-		fps.start();
 
 		SDL_FillRect(screen, &screen->clip_rect, SDL_MapRGB(screen->format, 0,0xFF,0xFF));
-		//tiles.displayTile(tiles.clips[0]);
+		int tempClipPos = 0;
+		for(int i = 0, posx = 2; posx < SCREEN_WIDTH; i++ ){
+			tempClipPos = currentClip + i;
+			if(tempClipPos < 0){
+				tempClipPos += maxClip;
+			}
+			if(tempClipPos > maxClip - 1){
+				tempClipPos = tempClipPos - maxClip;
+			}
+			tiles.displayTile(tempClipPos, posx);
+			posx += tiles.clips[tempClipPos].w + 2;
+		}
+		//tiles.displayTile(1060, 0);
 		tiles.display();
 		if(SDL_Flip(screen) == -1)
 			return 1;
@@ -192,7 +244,11 @@ int main(int argc, char* args[]){
 
 	//Saving the level.
 	std::ofstream file;
-	file.open("test_level.txt");
+	if(argc >= 2){
+		file.open(argv[1]);
+	}
+	else
+		file.open("test_level.txt");
 
 	std::vector<Tile> vec = tiles.get_tileSet();
 

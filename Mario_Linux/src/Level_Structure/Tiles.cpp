@@ -14,7 +14,7 @@
 
 
 Tiles::Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen){
-	image = load_image("res/groundtiles.png");
+	image = load_image("res/tilesfix.png");
 	if(image == NULL)
 		std::cout << '1' << std::endl;
 	screen = tScreen;
@@ -27,8 +27,8 @@ void Tiles::display(){
 	}
 }
 
-void Tiles::displayTile(SDL_Rect clip){
-	show(0 + posOffset->x, 0 + posOffset->y, image, screen, &clip);
+void Tiles::displayTile(int clipper, int x){
+	show(x, 0, image, screen, &clips[clipper]);
 }
 
 void Tiles::addTile(int x, int y, int w, int h, int type){
@@ -103,8 +103,32 @@ bool Tiles::load_tiles(){
 }
 
 void Tiles::set_clips(){
+	/*
 	clips[0].x = 154;
 	clips[0].y = 99;
 	clips[0].w = 16;
 	clips[0].h = 16;
+
+	clips[1].x = 137;
+	clips[1].y = 99;
+	clips[1].w = 16;
+	clips[1].h = 16;
+
+	clips[2].x = 171;
+	clips[2].y = 99;
+	clips[2].w = 16;
+	clips[2].h = 16;
+	*/
+	const int SPACES = 18;
+	int i = 0;
+	for(int x = 2, y = 2; y <= 398 && i < 967; x += SPACES, i++){
+		if(x > 756){
+			x = 2;
+			y+= SPACES;
+		}
+		clips[i].x = x;
+		clips[i].y = y;
+		clips[i].w = SPACES-2;
+		clips[i].h = SPACES-2;
+	}
 }

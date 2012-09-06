@@ -14,13 +14,14 @@ class Tiles: public Object{
 private:
 	void set_clips();
 	SDL_Surface* screen;
-	SDL_Rect posOffset;
+	SDL_Rect *posOffset;
 	std::vector<Tile> tile_set;
 public:
 	Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen);
-	SDL_Rect clips[1];
+	//void move();
+	SDL_Rect clips[967];
 	void display();
-	void displayTile(SDL_Rect clip);
+	void displayTile(int clipper, int x);
 	void addTile(int x, int y, int w, int h, int type);
 	std::vector<Tile> &get_tileSet();
 	bool load_tiles();

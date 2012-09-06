@@ -19,9 +19,9 @@ private:
 public:
 	Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen);
 	//void move();
-	SDL_Rect clips[1];
+	SDL_Rect clips[967];
 	void display();
-	void displayTile(SDL_Rect clip);
+	void displayTile(int clipper, int x);
 	void addTile(int x, int y, int w, int h, int type);
 	std::vector<Tile> &get_tileSet();
 	bool load_tiles();

@@ -23,8 +23,8 @@ Mario_Unit::Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, 
 	goingLeft = false;
 	event = temp;
 	velocity = 3;
-	yVel = 7;
-	jumpCap = 150;
+	yVel = 4;
+	jumpCap = clips[currentClip].h * 4;
 	upChuck = jumpCap;
 
 	framer = 0;
