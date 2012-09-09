@@ -94,11 +94,20 @@ void dispMario(Mario_Unit &player, bool jump){
 	
 	if(temp.x <= SCREEN_WIDTH/2){
 		posOffset.x = 0;
-		posOffset.y = 0;
 	}
 	else{
 		posOffset.x = (temp.x - SCREEN_WIDTH/2 ) * -1;
 		middle = true;
+	}
+
+	if(temp.y > 2*SCREEN_HEIGHT/3){
+		posOffset.y = (temp.y - 2*SCREEN_HEIGHT/3) * -1;
+	}
+	else if(temp.y < SCREEN_HEIGHT/3 && posOffset.y < SCREEN_HEIGHT/-3){
+		posOffset.y = (temp.y - 2*SCREEN_HEIGHT/3) * -1;
+	}
+	else if(posOffset.y > SCREEN_HEIGHT/ -3){
+		posOffset.y = 0;
 	}
 
 

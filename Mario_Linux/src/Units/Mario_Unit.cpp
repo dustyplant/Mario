@@ -47,12 +47,15 @@ Mario_Unit::Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, 
 void Mario_Unit::display(SDL_Rect &posOffset, bool jump){
 	//if(middle)
 	if(!goingLeft){
-		show(box.x + posOffset.x, posOffset.y + box.y, image, screen, &rightClips[currentClip]);
+		show(box.x + posOffset.x, box.y + posOffset.y, image, screen, &rightClips[currentClip]);
 		//std::cout << box.x + posOffset.x << ": " << box.y + posOffset.y << std::endl;
 		//std::cout << currentClip << std::endl;
 	}
 	else
-		show(box.x + posOffset.x, posOffset.y + box.y, flippedImage, screen, &leftClips[currentClip]);
+		show(box.x + posOffset.x, box.y + posOffset.y , flippedImage, screen, &leftClips[currentClip]);
+	if(posOffset.x < -100000 || posOffset.y < -10000){
+		alive = false;
+	}
 	//show(box.x, SCREEN_HEIGHT/2, image, screen , &clips[currentClip]);
 }
 
@@ -166,10 +169,12 @@ bool Mario_Unit::jumpingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 bool Mario_Unit::fallingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 	box.y += yVel;
 	bool bl = false;
+	/*
 	if(box.y + rightClips[currentClip].h >= SCREEN_HEIGHT){
 		alive = false;
 	}
-	while(check_down_collision(tileSet, posOffset) || box.y + rightClips[currentClip].h > SCREEN_HEIGHT){
+	*/
+	while(check_down_collision(tileSet, posOffset)/* || box.y + rightClips[currentClip].h > SCREEN_HEIGHT*/){
 		box.y--;
 		bl = true;
 	}
