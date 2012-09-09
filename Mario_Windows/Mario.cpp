@@ -130,7 +130,15 @@ int main(int argc, char* argv[]){
 
 	Mario_Unit player(event, mar, SCREEN_WIDTH, SCREEN_HEIGHT, screen);
 	Tiles tiles(posOffset, screen);
-	tiles.load_tiles();
+	std::string location = "src/Level_Structure/Levels/";
+	if(argc >= 2){
+		location += + argv[1];
+		if(tiles.load_tiles(location) == false)
+			return 1;
+	}
+	if(argc < 2)
+		if(tiles.load_tiles() == false)
+			return 1;
 
 	std::cout << player.loaded << std::endl;	
 	Timer fps;

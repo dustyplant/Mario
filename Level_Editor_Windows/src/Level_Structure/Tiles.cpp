@@ -39,7 +39,7 @@ std::vector<Tile> &Tiles::get_tileSet(){
 	return tile_set;
 }
 
-bool Tiles::load_tiles(){
+bool Tiles::load_tiles(std::string filename){
 	/*
 	addTile(0,400,clips[0].w, clips[0].h, 0);
 	int i;
@@ -60,7 +60,7 @@ bool Tiles::load_tiles(){
 	*/
 
 	std::ifstream file;
-	file.open("src/Level_Structure/Levels/test_level.txt");
+	file.open(filename.c_str());
 	if(file.is_open()){
 
 		std::string str;

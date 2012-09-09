@@ -9,6 +9,7 @@
 #include "SDL/SDL_ttf.h"
 
 #include <vector>
+#include <string>
 
 class Tiles: public Object{
 private:
@@ -24,7 +25,7 @@ public:
 	void displayTile(int clipper, int x);
 	void addTile(int x, int y, int w, int h, int type);
 	std::vector<Tile> &get_tileSet();
-	bool load_tiles();
+	bool load_tiles(std::string filename = "src/Level_Structure/Levels/load_level.txt");
 };
 
 #endif
