@@ -15,6 +15,7 @@ protected:
 	SDL_Rect box;
 	std::vector<SDL_Rect> boxes;
 	SDL_Surface* image;
+	SDL_Surface* flippedImage;
 
 public:
 	Object();

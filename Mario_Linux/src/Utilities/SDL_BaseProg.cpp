@@ -18,7 +18,7 @@ SDL_Surface* SDL_BaseProg::load_image(std::string filename){
 	SDL_Surface* optimizedImage = NULL;
 	loadedImage = IMG_Load(filename.c_str());
 	if(loadedImage != NULL){
-		optimizedImage = SDL_DisplayFormat(loadedImage);
+		optimizedImage = SDL_DisplayFormatAlpha(loadedImage);
 		SDL_FreeSurface(loadedImage);
 	}
 	return optimizedImage;

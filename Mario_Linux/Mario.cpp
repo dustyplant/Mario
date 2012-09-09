@@ -95,17 +95,14 @@ void dispMario(Mario_Unit &player, bool jump){
 	if(temp.x <= SCREEN_WIDTH/2){
 		posOffset.x = 0;
 		posOffset.y = 0;
-	}/*
-	else if(temp.x > background->w - SCREEN_WIDTH/2){
-		posOffset.x = (background->w - SCREEN_WIDTH) * -1;
-	}*/
+	}
 	else{
 		posOffset.x = (temp.x - SCREEN_WIDTH/2 ) * -1;
 		middle = true;
 	}
 
 
-	player.display(screen, background, posOffset, jump);
+	player.display(posOffset, jump);
 }
 
 
@@ -122,14 +119,13 @@ int main(int argc, char* argv[]){
 
 	initVars();
 
-	Mario_Unit player(event, mar, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Mario_Unit player(event, mar, SCREEN_WIDTH, SCREEN_HEIGHT, screen);
 	Tiles tiles(posOffset, screen);
 	tiles.load_tiles();
 
-	//std::cout << player.loaded << std::endl;	
+	std::cout << player.loaded << std::endl;	
 	Timer fps;
-	while(!quit){
-
+	while(!quit && player.alive){
 		fps.start();
 		
 		while(SDL_PollEvent(&event)){

@@ -12,6 +12,7 @@ Object::Object(){
 	per_pixel = false;
 	impassable = true;
 	image = NULL;
+	flippedImage = NULL;
 }
 
 Object::Object(int x, int y, int w, int h){
@@ -26,6 +27,7 @@ Object::Object(int x, int y, int w, int h){
 
 Object::~Object(){
 	SDL_FreeSurface(image);
+	SDL_FreeSurface(flippedImage);
 }
 
 bool Object::collision(SDL_Rect &rect){
