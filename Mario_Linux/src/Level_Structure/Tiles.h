@@ -24,7 +24,7 @@ public:
 	void displayTile(int clipper, int x);
 	void addTile(int x, int y, int w, int h, int type);
 	std::vector<Tile> &get_tileSet();
-	bool load_tiles();
+	bool load_tiles(std::string filename = "src/Level_Structure/Levels/test_level.txt");
 };
 
 #endif
