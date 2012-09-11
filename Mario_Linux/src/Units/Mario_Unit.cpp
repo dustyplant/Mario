@@ -24,7 +24,9 @@ Mario_Unit::Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, 
 	goingLeft = false;
 	event = temp;
 	velocity = 3;
-	yVel = 4;
+	boost = rightClips[currentClip].h/4;
+	yVel = boost;
+	gravity = .15;
 	jumpCap = rightClips[currentClip].h * 4;
 	upChuck = jumpCap;
 
@@ -124,43 +126,46 @@ void Mario_Unit::jumper(bool jump, std::vector<Tile> &tileSet, SDL_Rect &posOffs
 		jumping = true;
 		falling = false;
 		grounded = false;
+		yVel = boost;
 	}
 
 	if(jumping){
 		jumping = jumpingFunc(tileSet, posOffset);
 		falling = !jumping;
 		currentClip = 14;
-		box.y += box.h - rightClips[currentClip].h;
-		if(goingRight)
-			box.x += box.w - rightClips[currentClip].w;
 	}
 	if(!jumping && !check_grounded(tileSet, posOffset)){
 		grounded = fallingFunc(tileSet, posOffset);
 		falling = !grounded;
 		if(!grounded){
 			currentClip = 16;
-			box.y += box.h - rightClips[currentClip].h;
-			if(goingRight)
-				box.x += box.w - rightClips[currentClip].w;
 		}
 	}
+	if(yVel < 4){
+		currentClip = 15;
+	}
+	box.w = rightClips[currentClip].w;
+	box.h = rightClips[currentClip].h;
+	box.y += box.h - rightClips[currentClip].h;
+	if(goingRight){
+		box.x += box.w - rightClips[currentClip].w;
+	}
+
 	//std::cout << "Grounded: " << grounded << "\tfalling: " << falling << std::endl;
 	//std::cout << "box.y: " << box.y + box.h << std::endl;
 	jumpFramer++;
-	if(jumpFramer >= 30){
+	if(jumpFramer >= 60){
 		jumpFramer = 0;
 	}
 }
 
 bool Mario_Unit::jumpingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
-	upChuck -= yVel;
 	box.y -= yVel;
-	if(upChuck <= 0 || check_up_collision(tileSet, posOffset)){
+	yVel -= gravity;
+	if(yVel <= 0 || check_up_collision(tileSet, posOffset)){
+		yVel = 0;
 		upChuck = jumpCap;
 		currentClip = 15;
-		box.y += box.h - rightClips[currentClip].h;
-		if(goingRight)
-			box.x += box.w - rightClips[currentClip].w;
 		return false;
 	}
 	return true;
@@ -168,6 +173,10 @@ bool Mario_Unit::jumpingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 
 bool Mario_Unit::fallingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 	box.y += yVel;
+	yVel += gravity;
+	if(yVel > boost){
+		yVel = boost;
+	}
 	bool bl = false;
 	/*
 	if(box.y + rightClips[currentClip].h >= SCREEN_HEIGHT){
@@ -176,6 +185,7 @@ bool Mario_Unit::fallingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 	*/
 	while(check_down_collision(tileSet, posOffset)/* || box.y + rightClips[currentClip].h > SCREEN_HEIGHT*/){
 		box.y--;
+
 		bl = true;
 	}
 	//box.y--;

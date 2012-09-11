@@ -23,8 +23,10 @@ private:
 	SDL_Surface *screen;
 
 	bool jumping;
+	double gravity;
 	int velocity;
-	int yVel;
+	double yVel;
+	int boost;
 	int jumpCap;
 	int upChuck;
 	bool grounded;
