@@ -13,17 +13,24 @@
 #include "SDL/SDL_ttf.h"
 
 
-Tiles::Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen){
+Tiles::Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen, int screen_width, int screen_height){
 	image = load_image("res/tilesfix.png");
 	if(image == NULL)
 		std::cout << '1' << std::endl;
 	screen = tScreen;
 	posOffset = &tposOffset;
 	set_clips();
+	this->screen_width = screen_width;
+	this->screen_height = screen_height;
 }
 void Tiles::display(){
 	for(int i = 0; i < tile_set.size(); ++i){
-		show(tile_set[i].get_box().x + posOffset->x, tile_set[i].get_box().y + posOffset->y, image, screen, &clips[tile_set[i].getClip()]);
+		SDL_Rect temp = tile_set[i].get_box();
+		if(temp.x + temp.w + posOffset->x > 0 && temp.x  + posOffset->x < screen_width){
+			if(temp.y + temp.h + posOffset->y > 0 && temp.y  + posOffset->y < screen_height){
+				show(temp.x + posOffset->x, temp.y + posOffset->y, image, screen, &clips[tile_set[i].getClip()]);
+			}
+		}
 	}
 }
 

@@ -26,8 +26,10 @@ Object::Object(int x, int y, int w, int h){
 }
 
 Object::~Object(){
-	SDL_FreeSurface(image);
-	SDL_FreeSurface(flippedImage);
+	if(image != NULL)
+		SDL_FreeSurface(image);
+	if(flippedImage != NULL)
+		SDL_FreeSurface(flippedImage);
 }
 
 bool Object::collision(SDL_Rect &rect){

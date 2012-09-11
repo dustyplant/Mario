@@ -16,8 +16,10 @@ private:
 	SDL_Surface* screen;
 	SDL_Rect *posOffset;
 	std::vector<Tile> tile_set;
+	int screen_width;
+	int screen_height;
 public:
-	Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen);
+	Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen, int screen_width, int screen_height);
 	//void move();
 	SDL_Rect clips[967];
 	void display();

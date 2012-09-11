@@ -11,6 +11,8 @@ Mario Clone
 #include "src/Units/Mario_Unit.h"
 #include "src/Utilities/Timer.h"
 #include "src/Level_Structure/Tiles.h"
+#include "src/Units/Enemies/Enemies.h"
+#include "src/Units/Enemies/Enemy_Unit.h"	
 
 #include <string>
 #include <iostream>
@@ -129,7 +131,11 @@ int main(int argc, char* argv[]){
 	initVars();
 
 	Mario_Unit player(event, mar, SCREEN_WIDTH, SCREEN_HEIGHT, screen);
-	Tiles tiles(posOffset, screen);
+	Tiles tiles(posOffset, screen, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Enemies enemies(posOffset, screen);
+	enemies.addEnemy(100,100,0);
+
+
 	std::string location = "src/Level_Structure/Levels/";
 	if(argc >= 2){
 		location += + argv[1];
@@ -165,6 +171,7 @@ int main(int argc, char* argv[]){
 
 		player.move(background, posOffset, jump, tiles.get_tileSet());
 		dispMario(player, jump);
+		enemies.show_enemies(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 		jump = false;
 
