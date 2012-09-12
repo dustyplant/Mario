@@ -174,7 +174,14 @@ int main(int argc, char* argv[]){
 	posOffset.w = SCREEN_WIDTH;
 	posOffset.h = SCREEN_HEIGHT;
 	Tiles tiles(posOffset, screen);
-	//tiles.load_tiles();
+	std::string location = "src/Level_Structure/Levels/";
+	if(argc >= 2){
+		location += + argv[1];
+		tiles.load_tiles(location);
+	}
+	if(argc < 2)
+		tiles.load_tiles();
+
 	maxClip = sizeof(tiles.clips)/sizeof(tiles.clips[0]);
 	Timer fps;
 
@@ -243,13 +250,15 @@ int main(int argc, char* argv[]){
 	}
 
 	//Saving the level.
-	std::ofstream file;
-	if(argc >= 2){
-		file.open(argv[1]);
+	location = "src/Level_Structure/Levels/";
+	if(argc >= 3){
+		location += argv[2];
 	}
-	else
-		file.open("test_level.txt");
-
+	else{
+		location += "test_level.txt";
+	}
+	std::ofstream file;
+	file.open(location.c_str());
 	std::vector<Tile> vec = tiles.get_tileSet();
 
 	for(int i = 0; i < vec.size(); i++){

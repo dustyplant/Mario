@@ -26,7 +26,7 @@ Mario_Unit::Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, 
 	velocity = 3;
 	boost = rightClips[currentClip].h/4;
 	yVel = boost;
-	gravity = .15;
+	gravity = .2;
 	jumpCap = rightClips[currentClip].h * 4;
 	upChuck = jumpCap;
 
@@ -44,7 +44,15 @@ Mario_Unit::Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, 
 	SCREEN_HEIGHT = screenh;
 
 	screen = tScreen;
-}	
+}
+
+bool Mario_Unit::getLeft(){
+	return goingLeft;
+}
+
+bool Mario_Unit::getRight(){
+	return goingRight;
+}
 
 void Mario_Unit::display(SDL_Rect &posOffset, bool jump){
 	//if(middle)
@@ -65,6 +73,8 @@ void Mario_Unit::move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, s
 	Uint8* keystates = SDL_GetKeyState(NULL);
 	box.w = rightClips[currentClip].w;
 	box.h = rightClips[currentClip].h;
+
+
 	if(keystates[SDLK_RIGHT] && !keystates[SDLK_LEFT]){
 		
 		if(goingRight){
@@ -118,6 +128,7 @@ void Mario_Unit::move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, s
 	}
 
 	jumper(jump, tileSet, posOffset);
+	
 
 }
 
@@ -130,29 +141,33 @@ void Mario_Unit::jumper(bool jump, std::vector<Tile> &tileSet, SDL_Rect &posOffs
 	}
 
 	if(jumping){
+		currentClip = 14;
 		jumping = jumpingFunc(tileSet, posOffset);
 		falling = !jumping;
-		currentClip = 14;
 	}
 	if(!jumping && !check_grounded(tileSet, posOffset)){
-		grounded = fallingFunc(tileSet, posOffset);
-		falling = !grounded;
 		if(!grounded){
 			currentClip = 16;
 		}
+		grounded = fallingFunc(tileSet, posOffset);
+		falling = !grounded;
 	}
-	if(yVel < 4){
+	if(yVel < 4 && currentClip != 15){
 		currentClip = 15;
 	}
-	box.w = rightClips[currentClip].w;
-	box.h = rightClips[currentClip].h;
+
+	//Note: Must do this before resetting box.w and box.h to their new values.
+	//If not, you will always get 0, even when you wnat it to be different.
+	//This will result in a bug that lets him climb up walls and over the top of the screen.
 	box.y += box.h - rightClips[currentClip].h;
 	if(goingRight){
 		box.x += box.w - rightClips[currentClip].w;
 	}
+	//Redefine second.
+	box.w = rightClips[currentClip].w;
+	box.h = rightClips[currentClip].h;
 
-	//std::cout << "Grounded: " << grounded << "\tfalling: " << falling << std::endl;
-	//std::cout << "box.y: " << box.y + box.h << std::endl;
+	//Use this to control frames for animations and movements.
 	jumpFramer++;
 	if(jumpFramer >= 60){
 		jumpFramer = 0;
@@ -166,6 +181,24 @@ bool Mario_Unit::jumpingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 		yVel = 0;
 		upChuck = jumpCap;
 		currentClip = 15;
+		box.y += box.h - rightClips[currentClip].h;
+		if(goingRight ){
+			box.x += box.w - rightClips[currentClip].w;
+		}
+		//Redefine second.
+		box.w = rightClips[currentClip].w;
+		box.h = rightClips[currentClip].h;
+
+
+		while(goingRight && check_left_collision(tileSet, posOffset)){
+			box.x++;
+		}
+		while(goingLeft && check_right_collision(tileSet, posOffset)){
+			box.x--;
+		}
+		while(check_up_collision(tileSet, posOffset)){
+			box.y++;
+		}
 		return false;
 	}
 	return true;
@@ -178,18 +211,22 @@ bool Mario_Unit::fallingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 		yVel = boost;
 	}
 	bool bl = false;
-	/*
-	if(box.y + rightClips[currentClip].h >= SCREEN_HEIGHT){
-		alive = false;
+	if(!grounded && falling && check_down_collision(tileSet, posOffset)){
+		currentClip = 0;
+		box.y += box.h - rightClips[currentClip].h;
+		if(goingRight && check_right_collision(tileSet, posOffset)){
+			box.x += box.w - rightClips[currentClip].w;
+		}
+		//Redefine second.
+		box.w = rightClips[currentClip].w;
+		box.h = rightClips[currentClip].h;
 	}
-	*/
+
 	while(check_down_collision(tileSet, posOffset)/* || box.y + rightClips[currentClip].h > SCREEN_HEIGHT*/){
 		box.y--;
 
 		bl = true;
 	}
-	//box.y--;
-	//std::cout << box.y << std::endl;
 	return bl;
 }
 
@@ -210,7 +247,6 @@ bool Mario_Unit::check_grounded(std::vector<Tile> &tileSet, SDL_Rect &posOffset)
 		SDL_Rect temp = tileSet[i].get_box();
 
 		if( (box.x + box.w  > temp.x && box.x < temp.x + temp.w) && (box.y + box.h == temp.y && box.y  == temp.y) ){
-			std::cout << "Not grounded" << std::endl;
 			return  true;
 		}
 	}

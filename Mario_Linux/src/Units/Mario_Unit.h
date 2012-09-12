@@ -56,6 +56,8 @@ public:
 	void move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, std::vector<Tile> tileSet);
 	bool loaded;
 	void jumper(bool jump, std::vector<Tile> &tileSet, SDL_Rect &posOffset);
+	bool getLeft();
+	bool getRight();
 };
 
 #endif

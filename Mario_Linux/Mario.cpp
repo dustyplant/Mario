@@ -97,21 +97,24 @@ void dispMario(Mario_Unit &player, bool jump){
 	if(temp.x <= SCREEN_WIDTH/2){
 		posOffset.x = 0;
 	}
-	else{
-		posOffset.x = (temp.x - SCREEN_WIDTH/2 ) * -1;
+	else if(player.getRight() && temp.x + temp.w + posOffset.x > SCREEN_WIDTH/1.5){
+		posOffset.x = ( temp.x + temp.w - SCREEN_WIDTH/1.5 ) * -1;
+		middle = true;
+	}
+	else if(player.getLeft() && temp.x + posOffset.x < SCREEN_WIDTH/2.5){
+		posOffset.x = ( temp.x- SCREEN_WIDTH/2.5 ) * -1;
 		middle = true;
 	}
 
-	if(temp.y > 2*SCREEN_HEIGHT/3){
-		posOffset.y = (temp.y - 2*SCREEN_HEIGHT/3) * -1;
+	if(temp.y + temp.h > 2*SCREEN_HEIGHT/3){
+		posOffset.y = (temp.y + temp.h - 2*SCREEN_HEIGHT/3) * -1;
 	}
-	else if(temp.y < SCREEN_HEIGHT/3 && posOffset.y < SCREEN_HEIGHT/-3){
-		posOffset.y = (temp.y - 2*SCREEN_HEIGHT/3) * -1;
+	else if(temp.y + temp.h < SCREEN_HEIGHT/3 && posOffset.y < SCREEN_HEIGHT/-3){
+		posOffset.y = (temp.y + temp.h - 2*SCREEN_HEIGHT/3) * -1;
 	}
 	else if(posOffset.y > SCREEN_HEIGHT/ -3){
 		posOffset.y = 0;
 	}
-
 
 	player.display(posOffset, jump);
 }
