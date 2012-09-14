@@ -93,16 +93,18 @@ void dispMario(Mario_Unit &player, bool jump){
 	SDL_Rect temp = player.get_rects();
 
 	bool middle = false;
-	
-	if(temp.x <= SCREEN_WIDTH/2){
-		posOffset.x = 0;
-	}
-	else if(player.getRight() && temp.x + temp.w + posOffset.x > SCREEN_WIDTH/1.5){
-		posOffset.x = ( temp.x + temp.w - SCREEN_WIDTH/1.5 ) * -1;
+	if(player.getRight() && temp.x + temp.w + posOffset.x > SCREEN_WIDTH/2){
+		posOffset.x = ( temp.x + temp.w - SCREEN_WIDTH/2 ) * -1;
+		if(posOffset.x > 0){
+			posOffset.x = 0;
+		}
 		middle = true;
 	}
 	else if(player.getLeft() && temp.x + posOffset.x < SCREEN_WIDTH/2.5){
-		posOffset.x = ( temp.x- SCREEN_WIDTH/2.5 ) * -1;
+		posOffset.x = ( temp.x - SCREEN_WIDTH/2.5 ) * -1;
+		if(posOffset.x > 0){
+			posOffset.x = 0;
+		}
 		middle = true;
 	}
 
@@ -116,7 +118,7 @@ void dispMario(Mario_Unit &player, bool jump){
 		posOffset.y = 0;
 	}
 
-	player.display(posOffset, jump);
+	player.display(jump);
 }
 
 
@@ -133,8 +135,8 @@ int main(int argc, char* argv[]){
 
 	initVars();
 
-	Mario_Unit player(event, mar, SCREEN_WIDTH, SCREEN_HEIGHT, screen);
 	Tiles tiles(posOffset, screen, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Mario_Unit player(event, mar, SCREEN_WIDTH, SCREEN_HEIGHT, screen, posOffset);
 	Enemies enemies(posOffset, screen);
 	enemies.addEnemy(100,100,0);
 
@@ -172,7 +174,7 @@ int main(int argc, char* argv[]){
 
 		tiles.display();
 
-		player.move(background, posOffset, jump, tiles.get_tileSet());
+		player.move(background, jump);
 		dispMario(player, jump);
 		enemies.show_enemies(SCREEN_WIDTH, SCREEN_HEIGHT);
 

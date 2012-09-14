@@ -62,3 +62,13 @@ void Enemy_Unit::display(int screen_width, int screen_height){
 		}
 	}
 }
+/*
+void Enemy_Unit::setClip(int newClip){
+	currentClip = newClip;
+	box.y += box.h - rightClips[currentClip].h;
+	if(goingRight){
+		box.x += box.w - rightClips[currentClip].w;
+	}
+	box.w = rightClips[currentClip].w;
+	box.h = rightClips[currentClip].h;
+}*/

@@ -3,6 +3,7 @@
 
 #include "../Entities/Killable.h"
 #include "../Level_Structure/Tile.h"
+#include "../Level_Structure/Tiles.h"
 #include "MarioAnimation.h"
 
 #include <vector>
@@ -22,6 +23,8 @@ private:
 	SDL_Event event;
 	SDL_Surface *screen;
 
+	SDL_Rect *posOffset;
+	
 	bool jumping;
 	double gravity;
 	int velocity;
@@ -32,15 +35,15 @@ private:
 	bool grounded;
 
 	bool falling;
-	bool check_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset);
-	bool check_up_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset);
-	bool check_down_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset);
-	bool check_left_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset);
-	bool check_right_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset);
+	bool check_collision();
+	bool check_up_collision();
+	bool check_down_collision();
+	bool check_left_collision();
+	bool check_right_collision();
 
-	bool jumpingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset);
-	bool fallingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset);
-	bool check_grounded(std::vector<Tile> &tileSet, SDL_Rect &posOffset);
+	bool jumpingFunc();
+	bool fallingFunc();
+	bool check_grounded();
 
 	int jumpFramer;
 	int moveFramer;
@@ -48,16 +51,17 @@ private:
 	int SCREEN_HEIGHT;
 
 public:
-	Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, int screenh, SDL_Surface *tScreen);
+	Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, int screenh, SDL_Surface *tScreen, SDL_Rect &tPosOffset);
 
 	//~Mario_Unit();
 
-	void display(SDL_Rect &posOffset, bool jump);
-	void move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, std::vector<Tile> tileSet);
+	void display(bool jump);
+	void move(SDL_Surface* background, bool jump);
 	bool loaded;
-	void jumper(bool jump, std::vector<Tile> &tileSet, SDL_Rect &posOffset);
+	void jumper(bool jump);
 	bool getLeft();
 	bool getRight();
+	void setClip(int newClip);
 };
 
 #endif

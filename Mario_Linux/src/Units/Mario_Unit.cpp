@@ -2,6 +2,7 @@
 #include "MarioAnimation.h"
 #include "../Entities/Object.h"
 #include "../Level_Structure/Tile.h"
+#include "../Level_Structure/Tiles.h"
 
 #include <vector>
 #include <iostream>
@@ -10,15 +11,16 @@
 #include "SDL/SDL_image.h"
 #include "SDL/SDL_ttf.h"
 
-Mario_Unit::Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, int screenh, SDL_Surface *tScreen){
+Mario_Unit::Mario_Unit(SDL_Event &temp, SDL_Surface* sprite_sheet, int screenw, int screenh, SDL_Surface *tScreen, SDL_Rect &tPosOffset){
 	loaded = true;
-	currentClip = 0;
+	setClip(0);
 	set_clips();
 	box.x = 0;
 	box.y = 0;
 	jumping = false;
 	falling = true;
 	grounded = false;
+	posOffset = &tPosOffset;
 
 	goingRight = true;
 	goingLeft = false;
@@ -54,22 +56,22 @@ bool Mario_Unit::getRight(){
 	return goingRight;
 }
 
-void Mario_Unit::display(SDL_Rect &posOffset, bool jump){
+void Mario_Unit::display(bool jump){
 	//if(middle)
 	if(!goingLeft){
-		show(box.x + posOffset.x, box.y + posOffset.y, image, screen, &rightClips[currentClip]);
-		//std::cout << box.x + posOffset.x << ": " << box.y + posOffset.y << std::endl;
+		show(box.x + posOffset->x, box.y + posOffset->y, image, screen, &rightClips[currentClip]);
+		//std::cout << box.x + posOffset->x << ": " << box.y + posOffset->y << std::endl;
 		//std::cout << currentClip << std::endl;
 	}
 	else
-		show(box.x + posOffset.x, box.y + posOffset.y , flippedImage, screen, &leftClips[currentClip]);
-	if(posOffset.x < -100000 || posOffset.y < -10000){
+		show(box.x + posOffset->x, box.y + posOffset->y , flippedImage, screen, &leftClips[currentClip]);
+	if(posOffset->x < -100000 || posOffset->y < -10000){
 		alive = false;
 	}
 	//show(box.x, SCREEN_HEIGHT/2, image, screen , &clips[currentClip]);
 }
 
-void Mario_Unit::move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, std::vector<Tile> tileSet){
+void Mario_Unit::move(SDL_Surface* background, bool jump){
 	Uint8* keystates = SDL_GetKeyState(NULL);
 	box.w = rightClips[currentClip].w;
 	box.h = rightClips[currentClip].h;
@@ -79,47 +81,59 @@ void Mario_Unit::move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, s
 		
 		if(goingRight){
 			if(moveFramer == 0){
-				walk();
+				if(currentClip+1 > 13 || currentClip+1 < 7){
+					setClip(7);
+				}
+				else{
+					setClip(currentClip+1);
+				}
+				/*
 				box.y += box.h - rightClips[currentClip].h;
 				//std::cout << "First box.x: " << box.x << std::endl;
 				box.x += box.w - rightClips[currentClip].w;
 				//box.x -= 5;
 				//std::cout << "Second box.x: " << box.x << std::endl;
+				*/
 			}
 		}
 		else{
-			currentClip = 0;
-			box.y += box.h - rightClips[currentClip].h;
-			box.x += box.w - rightClips[currentClip].w;
+			setClip(0);
+			//box.y += box.h - rightClips[currentClip].h;
+			//box.x += box.w - rightClips[currentClip].w;
 			goingRight = true;
 			goingLeft = false;
 		}
 		box.x += velocity;
-		if( box.x + rightClips[currentClip].w + posOffset.x > SCREEN_WIDTH  || check_right_collision(tileSet, posOffset) ) {
+		if( box.x + rightClips[currentClip].w + posOffset->x > SCREEN_WIDTH  || check_right_collision() ) {
 			box.x-=velocity;
 		}
 
 	}
 	if(keystates[SDLK_LEFT] && !keystates[SDLK_RIGHT]){
 		box.x -= velocity;
-		if( box.x + posOffset.x < 0 || check_left_collision(tileSet, posOffset)){
+		if( box.x + posOffset->x < 0 || check_left_collision()){
 			box.x += velocity;
 
 		}
 		if(goingLeft){
 			if(moveFramer == 0){
-				walk();
+				if(currentClip+1 > 13 || currentClip+1 < 7){
+					setClip(7);
+				}
+				else{
+					setClip(currentClip+1);
+				}
 			}
 		}
 		else{
-			currentClip = 0;
+			setClip(0);
 			goingRight = false;
 			goingLeft = true;
 		}
-		box.y += box.h - rightClips[currentClip].h;
+		//box.y += box.h - rightClips[currentClip].h;
 	}
 	if( ((!keystates[SDLK_RIGHT] && !keystates[SDLK_LEFT]) || (keystates[SDLK_RIGHT] && keystates[SDLK_LEFT]) ) && grounded ){
-		currentClip = 0;
+		setClip(0);
 	}
 	
 	moveFramer++;
@@ -127,12 +141,36 @@ void Mario_Unit::move(SDL_Surface* background, SDL_Rect &posOffset, bool jump, s
 		moveFramer = 0;
 	}
 
-	jumper(jump, tileSet, posOffset);
+	jumper(jump);
 	
 
 }
 
-void Mario_Unit::jumper(bool jump, std::vector<Tile> &tileSet, SDL_Rect &posOffset){
+void Mario_Unit::setClip(int newClip){
+	currentClip = newClip;
+	//Note: Must do this before resetting box.w and box.h to their new values.
+	//If not, you will always get 0, even when you wnat it to be different.
+	//This will result in a bug that lets him climb up walls and over the top of the screen.
+	box.y += box.h - rightClips[currentClip].h;
+	if(goingRight && !(jumping && check_left_collision())){
+		box.x += box.w - rightClips[currentClip].w;
+	}
+	if(goingLeft && jumping && check_right_collision()){
+		box.x += box.w - leftClips[currentClip].w;
+	}
+	//Do this second.
+	box.w = rightClips[currentClip].w;
+	box.h = rightClips[currentClip].h;
+	/*
+	while(goingRight && !grounded && check_left_collision()){
+		box.x++;
+	}
+	while(goingLeft && !grounded && check_right_collision()){
+		box.x--;
+	}*/
+}
+
+void Mario_Unit::jumper(bool jump){
 	if(jump && !jumping && !falling && grounded){
 		jumping = true;
 		falling = false;
@@ -141,32 +179,28 @@ void Mario_Unit::jumper(bool jump, std::vector<Tile> &tileSet, SDL_Rect &posOffs
 	}
 
 	if(jumping){
-		currentClip = 14;
-		jumping = jumpingFunc(tileSet, posOffset);
+		setClip(14);
+		jumping = jumpingFunc();
 		falling = !jumping;
 	}
-	if(!jumping && !check_grounded(tileSet, posOffset)){
+	if(!jumping && !check_grounded()){
 		if(!grounded){
-			currentClip = 16;
+			setClip(16);
 		}
-		grounded = fallingFunc(tileSet, posOffset);
+		grounded = fallingFunc();
+		/*
+		while(goingRight && !grounded && check_left_collision()){
+			box.x++;
+		}
+		while(goingLeft && !grounded && check_right_collision()){
+			box.x--;
+		}*/
 		falling = !grounded;
 	}
 	if(yVel < 4 && currentClip != 15){
-		currentClip = 15;
+		setClip(15);
 	}
-
-	//Note: Must do this before resetting box.w and box.h to their new values.
-	//If not, you will always get 0, even when you wnat it to be different.
-	//This will result in a bug that lets him climb up walls and over the top of the screen.
-	box.y += box.h - rightClips[currentClip].h;
-	if(goingRight){
-		box.x += box.w - rightClips[currentClip].w;
-	}
-	//Redefine second.
-	box.w = rightClips[currentClip].w;
-	box.h = rightClips[currentClip].h;
-
+	
 	//Use this to control frames for animations and movements.
 	jumpFramer++;
 	if(jumpFramer >= 60){
@@ -174,55 +208,39 @@ void Mario_Unit::jumper(bool jump, std::vector<Tile> &tileSet, SDL_Rect &posOffs
 	}
 }
 
-bool Mario_Unit::jumpingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
+bool Mario_Unit::jumpingFunc(){
 	box.y -= yVel;
 	yVel -= gravity;
-	if(yVel <= 0 || check_up_collision(tileSet, posOffset)){
+	if(yVel <= 0 || check_up_collision()){
 		yVel = 0;
 		upChuck = jumpCap;
-		currentClip = 15;
-		box.y += box.h - rightClips[currentClip].h;
-		if(goingRight ){
-			box.x += box.w - rightClips[currentClip].w;
-		}
-		//Redefine second.
-		box.w = rightClips[currentClip].w;
-		box.h = rightClips[currentClip].h;
-
-
-		while(goingRight && check_left_collision(tileSet, posOffset)){
-			box.x++;
-		}
-		while(goingLeft && check_right_collision(tileSet, posOffset)){
-			box.x--;
-		}
-		while(check_up_collision(tileSet, posOffset)){
+		setClip(15);	
+		while(check_up_collision()){
 			box.y++;
 		}
 		return false;
 	}
+	while(goingRight && !grounded && check_left_collision()){
+		box.x++;
+	}
+	while(goingLeft && !grounded && check_right_collision()){
+		box.x--;
+	}
 	return true;
 }
 
-bool Mario_Unit::fallingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
+bool Mario_Unit::fallingFunc(){
 	box.y += yVel;
 	yVel += gravity;
 	if(yVel > boost){
 		yVel = boost;
 	}
 	bool bl = false;
-	if(!grounded && falling && check_down_collision(tileSet, posOffset)){
-		currentClip = 0;
-		box.y += box.h - rightClips[currentClip].h;
-		if(goingRight && check_right_collision(tileSet, posOffset)){
-			box.x += box.w - rightClips[currentClip].w;
-		}
-		//Redefine second.
-		box.w = rightClips[currentClip].w;
-		box.h = rightClips[currentClip].h;
+	if(!grounded && falling && check_down_collision()){
+		setClip(0);
 	}
 
-	while(check_down_collision(tileSet, posOffset)/* || box.y + rightClips[currentClip].h > SCREEN_HEIGHT*/){
+	while(check_down_collision()/* || box.y + rightClips[currentClip].h > SCREEN_HEIGHT*/){
 		box.y--;
 
 		bl = true;
@@ -230,9 +248,9 @@ bool Mario_Unit::fallingFunc(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
 	return bl;
 }
 
-bool Mario_Unit::check_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
-	for(int i = 0; i < tileSet.size(); i++){
-		SDL_Rect temp = tileSet[i].get_box();
+bool Mario_Unit::check_collision(){
+	for(int i = 0; i < Tiles::tileSet.size(); i++){
+		SDL_Rect temp = Tiles::tileSet[i].get_box();
 
 		if( (box.x + box.w  > temp.x && box.x < temp.x + temp.w) && ( (box.y + box.h > temp.y && box.y < temp.y) || (box.y < temp.y + temp.h && box.y + box.h > temp.y + temp.h) ) ){
 			
@@ -242,9 +260,9 @@ bool Mario_Unit::check_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset
 	return false;
 }
 
-bool Mario_Unit::check_grounded(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
-	for(int i = 0; i < tileSet.size(); i++){
-		SDL_Rect temp = tileSet[i].get_box();
+bool Mario_Unit::check_grounded(){
+	for(int i = 0; i < Tiles::tileSet.size(); i++){
+		SDL_Rect temp = Tiles::tileSet[i].get_box();
 
 		if( (box.x + box.w  > temp.x && box.x < temp.x + temp.w) && (box.y + box.h == temp.y && box.y  == temp.y) ){
 			return  true;
@@ -253,9 +271,9 @@ bool Mario_Unit::check_grounded(std::vector<Tile> &tileSet, SDL_Rect &posOffset)
 	return false;
 }
 
-bool Mario_Unit::check_up_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
-	for(int i = 0; i < tileSet.size(); i++){
-		SDL_Rect temp = tileSet[i].get_box();
+bool Mario_Unit::check_up_collision(){
+	for(int i = 0; i < Tiles::tileSet.size(); i++){
+		SDL_Rect temp = Tiles::tileSet[i].get_box();
 
 		if( (box.x + box.w  > temp.x && box.x < temp.x + temp.w) && (box.y < temp.y + temp.h && box.y + box.h > temp.y + temp.h)){
 			return  true;
@@ -264,9 +282,9 @@ bool Mario_Unit::check_up_collision(std::vector<Tile> &tileSet, SDL_Rect &posOff
 	return false;
 }
 
-bool Mario_Unit::check_down_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
-	for(int i = 0; i < tileSet.size(); i++){
-		SDL_Rect temp = tileSet[i].get_box();
+bool Mario_Unit::check_down_collision(){
+	for(int i = 0; i < Tiles::tileSet.size(); i++){
+		SDL_Rect temp = Tiles::tileSet[i].get_box();
 
 		if( (box.x + box.w  >= temp.x && box.x < temp.x + temp.w) && (box.y + box.h > temp.y && box.y < temp.y) ){
 			return  true;
@@ -275,9 +293,9 @@ bool Mario_Unit::check_down_collision(std::vector<Tile> &tileSet, SDL_Rect &posO
 	return false;
 }
 
-bool Mario_Unit::check_left_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
-	for(int i = 0; i < tileSet.size(); i++){
-		SDL_Rect temp = tileSet[i].get_box();
+bool Mario_Unit::check_left_collision(){
+	for(int i = 0; i < Tiles::tileSet.size(); i++){
+		SDL_Rect temp = Tiles::tileSet.at(i).get_box();
 
 		if( !(box.y + box.h <= temp.y || box.y >= temp.y + temp.h ) ){
 			if( box.x <= temp.x + temp.w && box.x + box.w >= temp.x + temp.h){
@@ -289,11 +307,11 @@ bool Mario_Unit::check_left_collision(std::vector<Tile> &tileSet, SDL_Rect &posO
 	return false;
 }
 
-bool Mario_Unit::check_right_collision(std::vector<Tile> &tileSet, SDL_Rect &posOffset){
+bool Mario_Unit::check_right_collision(){
 	box.w = rightClips[currentClip].w;
 	box.h = rightClips[currentClip].h;
-	for(int i = 0; i < tileSet.size(); i++){
-		SDL_Rect temp = tileSet[i].get_box();
+	for(int i = 0; i < Tiles::tileSet.size(); i++){
+		SDL_Rect temp = Tiles::tileSet[i].get_box();
 
 		if( !(box.y + box.h <= temp.y || box.y >= temp.y + temp.h) ){
 			if( box.x + box.w >= temp.x && box.x <= temp.x){

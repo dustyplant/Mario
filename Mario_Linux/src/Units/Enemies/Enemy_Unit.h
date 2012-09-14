@@ -8,7 +8,7 @@
 #include "SDL/SDL_ttf.h"
 
 class Enemy_Unit: public Killable{
-public:
+private:
 	int type;
 	int sheet;
 	int currentClip;
@@ -19,10 +19,12 @@ public:
 	SDL_Rect *posOffset;
 public:
 	Enemy_Unit(int x, int y, int ttype, int tSheet, SDL_Rect *clipper, SDL_Rect *camera, SDL_Surface *im, SDL_Surface *tScreen);
+	//~Enemy_Unit();
 	SDL_Rect get_box();
 	int get_type();
 	int get_sheet();
 	int get_currentClip();
+	//void setClip(int newClip);
 	void move(int frame);
 	void display(int screen_width, int screen_height);
 };

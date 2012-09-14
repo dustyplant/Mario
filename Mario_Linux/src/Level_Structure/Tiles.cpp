@@ -7,11 +7,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
+#include <vector>
 
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
 #include "SDL/SDL_ttf.h"
 
+std::vector<Tile> Tiles::tileSet;
 
 Tiles::Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen, int screen_width, int screen_height){
 	image = load_image("res/tilesfix.png");
@@ -24,11 +26,11 @@ Tiles::Tiles(SDL_Rect &tposOffset, SDL_Surface* tScreen, int screen_width, int s
 	this->screen_height = screen_height;
 }
 void Tiles::display(){
-	for(int i = 0; i < tile_set.size(); ++i){
-		SDL_Rect temp = tile_set[i].get_box();
+	for(int i = 0; i < tileSet.size(); ++i){
+		SDL_Rect temp = tileSet[i].get_box();
 		if(temp.x + temp.w + posOffset->x > 0 && temp.x  + posOffset->x < screen_width){
 			if(temp.y + temp.h + posOffset->y > 0 && temp.y  + posOffset->y < screen_height){
-				show(temp.x + posOffset->x, temp.y + posOffset->y, image, screen, &clips[tile_set[i].getClip()]);
+				show(temp.x + posOffset->x, temp.y + posOffset->y, image, screen, &clips[tileSet[i].getClip()]);
 			}
 		}
 	}
@@ -40,28 +42,29 @@ void Tiles::displayTile(int clipper, int x){
 
 void Tiles::addTile(int x, int y, int w, int h, int type){
 	Tile temp(x, y, w, h, type);
-	tile_set.push_back(temp);
+	tileSet.push_back(temp);
 }
+/* The member is now static and doesn't need a get function.
 std::vector<Tile> &Tiles::get_tileSet(){
-	return tile_set;
-}
+	return tileSet;
+}*/
 
 bool Tiles::load_tiles(std::string filename){
 	/*
 	addTile(0,400,clips[0].w, clips[0].h, 0);
 	int i;
 	for(i = 1; i < 100; i++)
-		addTile(tile_set[i-1].get_box().x + tile_set[i-1].get_box().w, tile_set[i-1].get_box().y, clips[0].w, clips[0].h, 0);
+		addTile(tileSet[i-1].get_box().x + tileSet[i-1].get_box().w, tileSet[i-1].get_box().y, clips[0].w, clips[0].h, 0);
 	//for(; i < 23; i++)
-	//	addTile(tile_set[i-1].get_box().x + tile_set[i-1].get_box().w, tile_set[i-1].get_box().y - 10, clips[0].w, clips[0].h, 0);
+	//	addTile(tileSet[i-1].get_box().x + tileSet[i-1].get_box().w, tileSet[i-1].get_box().y - 10, clips[0].w, clips[0].h, 0);
 	addTile(100, 300, clips[0].w, clips[0].h, 0);
 	i++;
-	addTile(tile_set[i-1].get_box().x + tile_set[i-1].get_box().w, tile_set[i-1].get_box().y, clips[0].w, clips[0].h, 0);
+	addTile(tileSet[i-1].get_box().x + tileSet[i-1].get_box().w, tileSet[i-1].get_box().y, clips[0].w, clips[0].h, 0);
 	i++;
 
 	addTile(200, 200, clips[0].w, clips[0].h, 0);
 	i++;
-	addTile(tile_set[i-1].get_box().x + tile_set[i-1].get_box().w, tile_set[i-1].get_box().y, clips[0].w, clips[0].h, 0);
+	addTile(tileSet[i-1].get_box().x + tileSet[i-1].get_box().w, tileSet[i-1].get_box().y, clips[0].w, clips[0].h, 0);
 
 	return true;
 	*/
